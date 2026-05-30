@@ -1,14 +1,31 @@
+import os
 import logging
+from azure.cosmos import CosmosClient
+
+# ¡Así es la forma correcta y segura!
+COSMOS_URL = os.environ.get("COSMOS_DB_URL")
+COSMOS_KEY = os.environ.get("COSMOS_DB_KEY")
+DATABASE_NAME = "PayFlowDB"
+CONTAINER_NAME = "Transacciones"
 
 def registrar_en_bd(transaccion: dict):
-    """
-    Guarda el registro con el estado final de la transacción en la base de datos (Cosmos DB o SQL).
-    """
-    estado = transaccion.get("estado", "DESCONOCIDO")
-    id_tx = transaccion.get("id_transaccion", "N/A")
-    
-    # Aquí irá la conexión al SDK de Cosmos DB o Azure SQL más adelante
-    # Por ahora, simulamos la escritura para comprobar que el flujo llega hasta el final
-    
-    logging.info(f"💾 BD LOG: Transacción {id_tx} registrada exitosamente en la base de datos con estado [{estado}].")
-    return True
+    try:
+        client = CosmosClient(url=COSMOS_URL, credential=COSMOS_KEY)
+        
+        # Esto crea la BD y la tabla automáticamente en la nube ¡Te ahorra clics en el portal!
+        database = client.create_database_if_not_exists(id=DATABASE_NAME)
+        container = database.create_container_if_not_exists(
+            id=CONTAINER_NAME,
+            partition_key={"paths": ["/id"], "kind": "Hash"}
+        )
+        
+        # Cosmos exige que el identificador principal se llame 'id' obligatoriamente
+        transaccion["id"] = str(transaccion.get("id_transaccion"))
+        
+        container.upsert_item(transaccion)
+        logging.info(f"💾 BD LOG: Transacción {transaccion['id']} guardada exitosamente en Cosmos DB.")
+        return True
+        
+    except Exception as e:
+        logging.error(f"❌ Error al guardar en Cosmos DB: {e}")
+        return False
