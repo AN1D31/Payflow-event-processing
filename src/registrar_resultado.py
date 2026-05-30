@@ -1,5 +1,5 @@
 import os
-import logging
+import logg
 from azure.cosmos import CosmosClient
 
 COSMOS_URL = os.environ.get("COSMOS_DB_URL")
