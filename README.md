@@ -92,9 +92,39 @@ se enrutan por un canal diferenciado en Service Bus con garantía de entrega at-
 
 ### C3 — Componentes
 
-> Diagrama en construcción — próximo commit
+![Diagrama C3 - Componentes](assets/C3.png)
 
----
+El nivel C3 descompone cada servicio Azure utilizado en la solución PayFlow y muestra
+sus componentes internos, responsabilidades e interacciones principales.
+
+#### Azure Function App
+Contiene la lógica de negocio encargada de validar transacciones, procesar pagos,
+aplicar reglas de enrutamiento y coordinar la comunicación con los demás servicios
+de la plataforma mediante integraciones con Cosmos DB, Event Hubs y Service Bus.
+
+#### Azure Cosmos DB
+Almacena el estado de las transacciones procesadas y la información operativa del
+sistema utilizando un modelo de documentos distribuido y altamente escalable.
+
+#### Azure Event Hubs
+Actúa como el canal principal de ingesta de eventos en tiempo real, permitiendo
+absorber picos de carga y distribuir el procesamiento mediante particiones.
+
+#### Azure Service Bus
+Implementa una cola dedicada para transacciones de alto valor, proporcionando
+entrega confiable, desacoplamiento entre componentes y capacidad de reintento.
+
+#### Azure Storage Account
+Centraliza el almacenamiento de archivos, registros operativos y copias de respaldo
+utilizadas por la solución.
+
+#### Application Insights y Log Analytics
+Proporcionan observabilidad integral mediante telemetría, métricas, trazas,
+consultas de diagnóstico y alertas operativas.
+
+#### Grupo de Recursos
+Agrupa todos los servicios desplegados en Azure dentro del proyecto PayFlow,
+facilitando la administración y el control de recursos.
 
 ## Decisiones Arquitectónicas (ADRs)
 
