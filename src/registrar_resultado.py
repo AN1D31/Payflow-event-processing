@@ -2,7 +2,6 @@ import os
 import logging
 from azure.cosmos import CosmosClient
 
-# ¡Así es la forma correcta y segura!
 COSMOS_URL = os.environ.get("COSMOS_DB_URL")
 COSMOS_KEY = os.environ.get("COSMOS_DB_KEY")
 DATABASE_NAME = "PayFlowDB"
@@ -11,15 +10,13 @@ CONTAINER_NAME = "Transacciones"
 def registrar_en_bd(transaccion: dict):
     try:
         client = CosmosClient(url=COSMOS_URL, credential=COSMOS_KEY)
-        
-        # Esto crea la BD y la tabla automáticamente en la nube ¡Te ahorra clics en el portal!
+
         database = client.create_database_if_not_exists(id=DATABASE_NAME)
         container = database.create_container_if_not_exists(
             id=CONTAINER_NAME,
             partition_key={"paths": ["/id"], "kind": "Hash"}
         )
-        
-        # Cosmos exige que el identificador principal se llame 'id' obligatoriamente
+
         transaccion["id"] = str(transaccion.get("id_transaccion"))
         
         container.upsert_item(transaccion)
