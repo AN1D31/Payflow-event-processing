@@ -171,15 +171,15 @@ A continuación, se presentan las pruebas de funcionamiento de la arquitectura d
 
 **1. Stack de Infraestructura**
 *(Reemplazar con la imagen del Resource Group con todos los servicios creados)*
-![Evidencia 1 - Recursos Azure](assets/evidencia1.jpg)
+![Evidencia 1 - Recursos Azure](assets/evidencia1.jpeg)
 
 **2. Ingesta de Eventos**
 *(Reemplazar con la imagen de la terminal ejecutando el generador_eventos.py)*
-![Evidencia 2 - Terminal Simulador](assets/evidencia2.jpg)
+![Evidencia 2 - Terminal Simulador](assets/evidencia2.jpeg)
 
 **3. Procesamiento en Tiempo Real (Azure Functions)**
 *(Reemplazar con la imagen del "Log stream" mostrando las transacciones siendo validadas)*
-![Evidencia 3 - Logs Function App](assets/evidencia3.jpg)
+![Evidencia 3 - Logs Function App](assets/evidencia3.jpeg)
 
 **4. Enrutamiento de Alto Valor (Service Bus)**
 *(Reemplazar con la imagen del Service Bus Explorer mostrando la transacción de 8.5 millones retenida en la cola)*
