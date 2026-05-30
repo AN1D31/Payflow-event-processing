@@ -178,17 +178,8 @@ A continuación, se presentan las pruebas de funcionamiento de la arquitectura d
 **3. Procesamiento en Tiempo Real (Azure Functions)**
 ![Evidencia 3 - Logs Function App](assets/evidencia3.jpeg)
 
-**4. Enrutamiento de Alto Valor (Service Bus)**
-*(Reemplazar con la imagen del Service Bus Explorer mostrando la transacción de 8.5 millones retenida en la cola)*
-![Evidencia 4 - Cola Service Bus](assets/evidencia4.png)
-
-**5. Persistencia (Cosmos DB)**
-*(Reemplazar con la imagen del Data Explorer de Cosmos DB mostrando el JSON con estado "APROBADA" o "RECHAZADA_FRAUDE")*
-![Evidencia 5 - Data Explorer CosmosDB](assets/evidencia5.png)
-
 **6. Observabilidad (Application Insights)**
-*(Reemplazar con la imagen del dashboard de métricas de Application Insights)*
-![Evidencia 6 - Azure Monitor](assets/evidencia6.png)
+![Evidencia 6 - Azure Monitor](assets/evidencia6.jpeg)
 
 ---
 
