@@ -126,20 +126,50 @@ facilitando la administración y el control de recursos.
 
 ## Decisiones Arquitectónicas (ADRs)
 
-### ADR-01: Uso de Azure Event Hubs como punto de entrada sobre Azure Service Bus para ingesta de transacciones
-*(Ver detalle en historial de commits)*
+### ADR-01: Uso de Azure Event Hubs como punto de entrada sobre Azure Service Bus
 
-### ADR-02: Uso de Azure Service Bus para enrutamiento prioritario de transacciones de alto valor
-*(Ver detalle en historial de commits)*
+**Contexto:** PayFlow procesa en promedio 85.000 transacciones diarias, con picos de hasta 260.000 en temporada alta (aprox. 500 tx/seg). El sistema legado solo soporta 40 tx/seg. Se necesita un buffer distribuido para absorber ráfagas sin perder eventos.
+**Decisión:** Se elige **Azure Event Hubs** como punto de entrada exclusivo.
+**Consecuencias:**
+* ✅ Absorbe picos de 500 tx/seg gracias a su modelo de streaming particionado.
+* ✅ Desacopla la velocidad de ingesta de la velocidad de procesamiento.
+* ❌ No garantiza el orden global exacto de los mensajes, lo cual es aceptable para transacciones independientes.
 
-### ADR-03: Uso de Azure Functions con Consumption Plan sobre Azure Container Apps para el procesamiento
-*(Ver detalle en historial de commits)*
+### ADR-02: Uso de Azure Service Bus para enrutamiento prioritario
 
-### ADR-04: Uso de Cosmos DB sobre Azure SQL Database para la persistencia de transacciones
-*(Ver detalle en historial de commits)*
+**Contexto:** Actualmente, una transacción de $500 COP y una de $50.000.000 COP compiten en la misma fila. Si los webhooks fallan, se revierten transacciones exitosas por el acoplamiento fuerte.
+**Decisión:** Se elige **Azure Service Bus** como canal dedicado exclusivamente para transacciones de alto valor (> $5M COP).
+**Consecuencias:**
+* ✅ Garantía de entrega *at-least-once* para el flujo de caja crítico.
+* ✅ Desacopla la notificación (webhook) del flujo principal de autorización.
+* ✅ Soporte nativo para reintentos automáticos y Dead-Letter Queue.
 
-### ADR-05: Uso de Azure Monitor + Application Insights sobre solución de monitoreo externa para observabilidad
-*(Ver detalle en historial de commits)*
+### ADR-03: Uso de Azure Functions con Consumption Plan
+
+**Contexto:** El equipo requiere una solución de cómputo que procese el alto volumen de eventos, evite la gestión manual de servidores y se ajuste a un presupuesto limitado.
+**Decisión:** Se elige **Azure Functions en Consumption Plan** (Serverless).
+**Consecuencias:**
+* ✅ Escala automáticamente de 0 a N instancias leyendo en paralelo desde Event Hubs.
+* ✅ Cero administración de infraestructura subyacente.
+* ❌ Posible latencia por *Cold Start* en la primera ejecución tras inactividad.
+
+### ADR-04: Uso de Cosmos DB para la persistencia
+
+**Contexto:** El sistema maneja pagos, reembolsos y transferencias, cada uno con atributos distintos. Un modelo relacional requeriría esquemas rígidos y migraciones constantes.
+**Decisión:** Se elige **Azure Cosmos DB** (API NoSQL).
+**Consecuencias:**
+* ✅ Flexibilidad de esquema para manejar múltiples tipos de transacciones en una sola colección.
+* ✅ Latencia de escritura inferior a 10ms, ideal para procesamiento en tiempo real.
+* ✅ Integración nativa con los *bindings* de Azure Functions.
+
+### ADR-05: Uso de Application Insights para observabilidad
+
+**Contexto:** El monitoreo actual es reactivo; los fallos se detectan por quejas de los comercios vía WhatsApp. Se requieren alertas tempranas.
+**Decisión:** Se implementa **Azure Monitor y Application Insights**.
+**Consecuencias:**
+* ✅ Monitoreo proactivo con alertas configurables en menos de 30 segundos.
+* ✅ Trazas distribuidas automáticas por cada transacción sin modificar el código base.
+* ✅ Visibilidad en tiempo real de métricas de rendimiento y cuellos de botella.
 
 ---
 
@@ -178,7 +208,7 @@ A continuación, se presentan las pruebas de funcionamiento de la arquitectura d
 **3. Procesamiento en Tiempo Real (Azure Functions)**
 ![Evidencia 3 - Logs Function App](assets/evidencia3.jpeg)
 
-**6. Observabilidad (Application Insights)**
+**4. Observabilidad (Application Insights)**
 ![Evidencia 6 - Azure Monitor](assets/evidencia6.jpeg)
 
 ---
@@ -187,8 +217,8 @@ A continuación, se presentan las pruebas de funcionamiento de la arquitectura d
 
 La implementación de esta arquitectura orientada a eventos resolvió satisfactoriamente los 5 problemas críticos del sistema legado de PayFlow:
 
-1. **Mitigación del Cuello de Botella:** La adopción de Azure Event Hubs permitió crear un buffer elástico que absorbe eficientemente los picos de demanda, desacoplando la velocidad de entrada (POS) de la velocidad de procesamiento.
-2. **Priorización Efectiva:** El uso combinado de Azure Functions para validación condicional y Service Bus garantiza que las transacciones de alto valor (> $5M COP) no queden represadas, protegiendo los flujos de caja más críticos del negocio.
-3. **Prevención Proactiva de Fraude:** Al trasladar la validación al inicio del flujo (Function App) antes de consolidar la persistencia y la autorización, se evita que el dinero quede comprometido ante anomalías evidentes (como montos negativos).
-4. **Resiliencia y Desacoplamiento:** El diseño garantiza que un fallo en la persistencia o en la notificación de los webhooks no bloquee la ingesta de nuevas transacciones, eliminando el acoplamiento fuerte previo.
-5. **Observabilidad Integral:** La inyección automática de Application Insights otorga a los equipos de infraestructura y riesgo visibilidad en tiempo real, permitiendo abandonar el esquema de soporte reactivo (quejas por WhatsApp) y adoptar un monitoreo basado en alertas proactivas.
+1.  **Mitigación del Cuello de Botella:** La adopción de Azure Event Hubs permitió crear un buffer elástico que absorbe eficientemente los picos de demanda, desacoplando la velocidad de entrada (POS) de la velocidad de procesamiento.
+2.  **Priorización Efectiva:** El uso combinado de Azure Functions para validación condicional y Service Bus garantiza que las transacciones de alto valor (> $5M COP) no queden represadas, protegiendo los flujos de caja más críticos del negocio.
+3.  **Prevención Proactiva de Fraude:** Al trasladar la validación al inicio del flujo (Function App) antes de consolidar la persistencia y la autorización, se evita que el dinero quede comprometido ante anomalías evidentes (como montos negativos).
+4.  **Resiliencia y Desacoplamiento:** El diseño garantiza que un fallo en la persistencia o en la notificación de los webhooks no bloquee la ingesta de nuevas transacciones, eliminando el acoplamiento fuerte previo.
+5.  **Observabilidad Integral:** La inyección automática de Application Insights otorga a los equipos de infraestructura y riesgo visibilidad en tiempo real, permitiendo abandonar el esquema de soporte reactivo (quejas por WhatsApp) y adoptar un monitoreo basado en alertas proactivas.
