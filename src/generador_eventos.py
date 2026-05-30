@@ -3,7 +3,7 @@ import json
 from azure.eventhub.aio import EventHubProducerClient
 from azure.eventhub import EventData
 
-EVENT_HUB_CONNECTION_STR = "wi4TnEFymo5K/SaoAHx8TWaKaxu06kay4+AEhIQ/Dew="
+EVENT_HUB_CONNECTION_STR = "Endpoint=sb://payflow-eventhubs-grupogenial.servicebus.windows.net/;SharedAccessKeyName=RootManageSharedAccessKey;SharedAccessKey=wi4TnEFymo5K/SaoAHx8TWaKaxu06kay4+AEhIQ/Dew="
 EVENT_HUB_NAME = "transacciones"
 
 def generar_lote_transacciones():
