@@ -15,7 +15,6 @@
 |--------|
 | Daniela Vanegas Guerrero |
 | Andrés Felipe Bolívar Osorio |
-| Jaison Esteban Córdoba Arroyo |
 | Sthyd Anderson Guissao Ramírez |
 
 ---
